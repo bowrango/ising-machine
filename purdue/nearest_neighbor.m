@@ -16,7 +16,7 @@ Ti = 40;                % intial temperature
 Tf = 0.5;               % final temperature
 p = 1/4;                % percent of p-bits that will update per timestep
 num_samples = 2;        % number of samples to collect
-psl_accel("SetIPAndPort", "54.165.83.117", 1234); % ip address must be updated to match aws instance public ip address
+%psl_accel("SetIPAndPort", "54.165.83.117", 1234); % ip address must be updated to match aws instance public ip address
 
 %%
 %Construct J from a B&W image. Try replacing purduePmaxcut.png with any
@@ -82,8 +82,8 @@ for row=1:ROWS
 end
 
 
-rc = psl_accel("SetWeights", J_send);
-clear mm;
+%rc = psl_accel("SetWeights", J_send);
+%clear mm;
 %%
 % Prepare a random initial state.
 X=rand(Nm,1);m=sign(X.*2-1);

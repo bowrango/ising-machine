@@ -1,5 +1,5 @@
 
-% models for coupled RC circuits
+% Coupled RC oscillator
 
 nOsc = 2;
 
@@ -9,7 +9,6 @@ c2 = 1e-4;
 c12 = 1e-4;
 C = [c1+c12 -c12; -c12 c2+c12];
 invC = inv(C);
-
 
 r1 = 5e4;
 r2 = 5e4;
@@ -39,7 +38,6 @@ sdeMdl = sde(drift, diffusion);
 
 A = -invC*invR;
 B = eye(nOsc); % TODO add noisy control/source
-% assume no measure error so output = state
 C = eye(nOsc);
 D = eye(nOsc);
 ssMdl = ss(A,B,C,D);

@@ -4,12 +4,15 @@
 
 % See also
 % https://siglentna.com/application-note/python-sdg-x-basics-lan/
+% https://siglentna.com/application-note/programming-example-sdg-waveform-creation-with-python-and-sockets-no-visa/
+% https://www.siglenteu.com/operating-tip/instrument-socket-and-telnet-port-information/
 
-assert(ismac)
+assert(~ismac)
+
 dev = visadev('USB0::0xF4EC::0x1101::SDG6XEBC5R0143::INSTR');
 
 % Configure VISA object properties
-dev.InputBufferSize = 20480000; % 20 MB
+% dev.InputBufferSize = 20480000; % 20 MB
 dev.OutputBufferSize = 20480000; % 20 MB
 dev.Timeout = 10; % Timeout in seconds
 
@@ -33,7 +36,7 @@ fileID = fopen(fileName, 'rb');
 binaryData = fread(fileID, 'uint16');
 fclose(fileID);
 
-% Prepare and s end VISA command
+% Prepare and send VISA command
 visa_string = sprintf('C1:WVDT WVNM,wave2,FREQ,2000.0,AMPL,4.0,OFST,0.0,PHASE,0.0,WAVEDATA,%s', ...
                       mat2str(binaryData')); % Convert data to string
 
@@ -42,5 +45,4 @@ writeline(dev, 'C1:ARWV NAME,wave2'); % Assign waveform name
 writeline(dev, 'C1:OUTP OFF'); % Ensure output is off before configuring
 writeline(dev, 'C1:OUTP ON'); % Turn output on
 
-% Clean up
 clear dev;

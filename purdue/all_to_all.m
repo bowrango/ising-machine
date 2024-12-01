@@ -17,10 +17,13 @@ NFPGA = 1000;                           % number of samples to collect
 betaPSL = 1.0;                          % pseudo-inverse-temperature (higher is cooler, lower is hot, 0 leads to equal peaks in histogram)
 aws_instance_ip_adr = "54.86.255.192";    % public ip address of aws instance which is running the fpga. Can be found in instance description on the aws ec2 console. 
 dt_fpga = 1/(2*Nm);                     % how many p-bits to update in parallel per timestep
+
+
 max_weight_for_rand_J = 3;              % maximum weight if random J is selected
-create_random_J = 0;                    % Flag to create a random J
+create_random_J = 1;                    % Flag to create a random J
 create_zero_J = 0;                      % Flag to create 0 J
-connect_to_fpga = 1;                    % Flag to connect to FPGA
+
+connect_to_fpga = 0;                    % Flag to connect to FPGA
 
 % The following is the J and h for an AND gate. Running with this should
 % produce a histogram matching that found for the simulator (running and gate)
@@ -49,8 +52,8 @@ Look = 2.^(Nm-1:-1:0);
 PB = zeros(2^Nm,1);
 E = 0;
 for ii = 1:1:2^Nm
-    m = sign(2*de2bi(ii-1,Nm,'left-msb')-1)';
-    E = 0.5*m'*J*m+h.'*m;
+    m = sign(2*dec2bin(ii-1,Nm)-1)';
+    E = 0.5*m'*J*m + h.'*m;
     X2 = 1+Look*(1+m)/2;
     PB(X2) = PB(X2) + exp(-E);
 end
