@@ -9,38 +9,35 @@
 
 assert(~ismac)
 
+% FIXME
 dev = visadev('USB0::0xF4EC::0x1101::SDG6XEBC5R0143::INSTR');
 
 % Configure VISA object properties
-% dev.InputBufferSize = 20480000; % 20 MB
-dev.OutputBufferSize = 20480000; % 20 MB
-dev.Timeout = 10; % Timeout in seconds
+dev.OutputBufferSize = 20480000; % (20 MB)
+dev.Timeout = 10; % (seconds)
 
-% Create waveform data
-wave_points = {'8000', '8000', 'c0fa', 'c0fa', '0000', '0000', '3f06', '3f06', '7fff', '7fff'};
-len = length(wave_points);
+% waveform 
+points = {'8000', '8000', 'c0fa', 'c0fa', '0000', '0000', '3f06', '3f06', '7fff', '7fff'};
+len = length(points);
 data = zeros(1, len, 'uint16');
-
 for i = 1:len
-    data(i) = uint16(hex2dec(wave_points{i}));
+    data(i) = uint16(hex2dec(points{i}));
 end
 
-% Write waveform data to binary file
 fileName = 'wave2.bin';
 fileID = fopen(fileName, 'wb');
 fwrite(fileID, data, 'uint16');
 fclose(fileID);
 
-% Read binary data from file
 fileID = fopen(fileName, 'rb');
 binaryData = fread(fileID, 'uint16');
 fclose(fileID);
 
-% Prepare and send VISA command
-visa_string = sprintf('C1:WVDT WVNM,wave2,FREQ,2000.0,AMPL,4.0,OFST,0.0,PHASE,0.0,WAVEDATA,%s', ...
-                      mat2str(binaryData')); % Convert data to string
+% VISA command
+visaStr = sprintf('C1:WVDT WVNM,wave2,FREQ,2000.0,AMPL,4.0,OFST,0.0,PHASE,0.0,WAVEDATA,%s', ...
+                      mat2str(binaryData'));
 
-writeline(dev, visa_string); % Send command
+writeline(dev, visaStr);
 writeline(dev, 'C1:ARWV NAME,wave2'); % Assign waveform name
 writeline(dev, 'C1:OUTP OFF'); % Ensure output is off before configuring
 writeline(dev, 'C1:OUTP ON'); % Turn output on

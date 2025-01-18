@@ -1,9 +1,6 @@
 
-% Coupled RC oscillator
-
 nOsc = 2;
 
-% 100 uF
 c1 = 1e-4;
 c2 = 1e-4; 
 c12 = 1e-4;
@@ -19,10 +16,7 @@ v0 = 5*ones(nOsc, 1);
 dt = 0.01;
 T = 25;
 
-% SDE
-
 % random noise gain
-% TODO connect to kuramoto gain
 rng default
 Kn = 0.2;
 gV = Kn*randn(nOsc);
@@ -30,12 +24,11 @@ gV = Kn*randn(nOsc);
 drift = @(t, X) -invC*invR*X;
 diffusion = @(t, X) -invC*invR*gV;
 
-sdeMdl = sde(drift, diffusion);
+sdeMdl = sde(drift, diffusion, StartState=v0);
 
 [sdeV, t] = simulate(sdeMdl, T/dt, NTrials=1, DeltaTime=dt);
 
-% State Space
-
+% State space
 A = -invC*invR;
 B = eye(nOsc); % TODO add noisy control/source
 C = eye(nOsc);
@@ -48,8 +41,7 @@ u = zeros(length(t), 2);
 
 [vss, t_out] = lsim(ssMdl, u, t, v0);
 
-% Plots
-
+% Plot
 tiledlayout(2,1);
 
 nexttile
