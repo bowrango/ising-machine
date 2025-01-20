@@ -21,15 +21,14 @@ pspectrum(z*0.7, t);
 grid on
 
 function dsdt = breadboard(t, s)
-% Colpitts Oscillator
 L = 850e-6;
 R = 36;
 Re = 510;
+C0 = 47e-6;
 C1 = 470e-9;
 C2 = C1;
 R1 = 3e3;
 R2 = R1;
-C0 = 47e-6;
 V0 = 15;
 
 rho = sqrt(L/C1);
