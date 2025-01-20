@@ -31,5 +31,5 @@ function writeRegister(spiObj, registerAddress, dataByte)
 % Writes single byte to MCP23S17 register.
 % opcode = 0x40 for write (hardware address = 0, see datasheet)
 opcode = 0x40;
-writeRead(spiObj, [opcode, registerAddress, dataByte]);
+writeRead(spiObj, [opcode registerAddress dataByte]);
 end
