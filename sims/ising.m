@@ -14,12 +14,11 @@ sol = solve(qb);
 
 % Ising matrix
 J = -Q;
-h = zeros(nOsc,1);
 
 tstop = 10;
 dt = 2e-3;
 
-% Coupling schedule (linear)
+% Coupling schedule (ramp)
 K = 7;
 a1.k = (K-1)/tstop;
 f1 = @(t, args) 1 + t*args.k;
@@ -28,11 +27,11 @@ f1 = @(t, args) 1 + t*args.k;
 a2.T = tstop/20;
 f2 = @(t, args) 1+2*tanh(10*cos(2*pi*t/args.T));
 
-drift = @(t,X) Kuramoto(X, f1(t, a1), f2(t, a2), h, J);
+drift = @(t,X) Kuramoto(X, f1(t, a1), f2(t, a2), J);
 
 % Noise schedule (constant)
-An = 0.2;
-diffusion = @(t,X) An*eye(nOsc);
+Kn = 0.2;
+diffusion = @(t,X) Kn*eye(nOsc);
 
 mdl = sde(drift, diffusion, StartState=rand(nOsc, 1));
 [S, T] = simulate(mdl, tstop/dt, DeltaTime=dt);
@@ -64,14 +63,13 @@ plot(T, f1(T, a1)); hold on; grid on
 plot(T, f2(T, a2)); grid on
 xlabel('time (cycles)');
 
-% TODO Lyapunov analysis
-
-function dxdt = Kuramoto(x, K, Ks, h, J)
+function dxdt = Kuramoto(x, K, Ks, J)
+% Equation 4.16
 n = length(x);
 dxdt = zeros(n,1);
 for ii = 1:n
    % Coupling
-    dxdt(ii, 1) = -K*( h(ii)*tanh(10*sin(pi*x(ii))) + J(ii, :)*tanh(10*sin(pi*(x(ii) - x))) );
+    dxdt(ii) = -K*J(ii, :)*tanh(10*sin(pi*(x(ii) - x)));
 end
 
 % Sync
@@ -79,4 +77,8 @@ dxdt = dxdt - Ks*sin(2*pi*x);
 
 % Normalize
 dxdt = dxdt/pi;
+
+% TODO Lyapunov analysis
+% tanh(sin()) used for coupling changes the cos(.) term in (4.7) to a 
+% triangle function (see page 77).
 end
