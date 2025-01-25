@@ -1,5 +1,5 @@
 
-nOsc = 50;
+nOsc = 2;
 
 % Problem matrix
 rng default
@@ -19,18 +19,22 @@ tstop = 10;
 dt = 2e-3;
 
 % Coupling schedule (ramp)
-K = 7;
+% The true K of each oscillator depends on PPV and perturbation amplitude
+% from other oscillators
+K = 10;
 a1.k = (K-1)/tstop;
-f1 = @(t, args) 1 + t*args.k;
+coupling = @(t, args) 1 + t*args.k;
 
 % Sync schedule (square wave)
 a2.T = tstop/20;
-f2 = @(t, args) 1+2*tanh(10*cos(2*pi*t/args.T));
+sync = @(t, args) 1+2*tanh(10*cos(2*pi*t/args.T));
 
-drift = @(t,X) Kuramoto(X, f1(t, a1), f2(t, a2), J);
+% Model phase state vector X
+% TODO discrete points match Ising model. Rounding explains cut jitter
+drift = @(t,X) phaseModel(X, coupling(t, a1), sync(t, a2), J);
 
 % Noise schedule (constant)
-Kn = 0.2;
+Kn = 0.1;
 diffusion = @(t,X) Kn*eye(nOsc);
 
 mdl = sde(drift, diffusion, StartState=rand(nOsc, 1));
@@ -47,24 +51,31 @@ for k = 1:length(T)
     cuts(k) = -sum(J(x1, x2), "all");
 end
 
-tiledlayout
+tiledlayout(3,1)
 
 nexttile
-plot(T, S); hold on; grid on;
+plot(T, S)
+grid on
 ylabel('phases (\pi)')
 
 nexttile
-yyaxis left
-plot(T, cuts); grid on
+hold on
+grid on
 yline(-sol.BestFunctionValue, LineWidth=2)
+plot(T, cuts)
 ylabel('cut value')
-yyaxis right
-plot(T, f1(T, a1)); hold on; grid on
-plot(T, f2(T, a2)); grid on
-xlabel('time (cycles)');
+hold off
 
-function dxdt = Kuramoto(x, K, Ks, J)
-% Equation 4.16
+nexttile
+hold on
+grid on
+plot(T, coupling(T, a1))
+plot(T, sync(T, a2))
+xlabel('time (cycles)');
+hold off
+
+function dxdt = phaseModel(x, K, Ks, J)
+% Adapted Kuramoto (Equation 4.16)
 n = length(x);
 dxdt = zeros(n,1);
 for ii = 1:n
@@ -72,13 +83,10 @@ for ii = 1:n
     dxdt(ii) = -K*J(ii, :)*tanh(10*sin(pi*(x(ii) - x)));
 end
 
-% Sync
-dxdt = dxdt - Ks*sin(2*pi*x);
-
-% Normalize
-dxdt = dxdt/pi;
+% Add sync and normalize
+dxdt = (dxdt - Ks*sin(2*pi*x))/pi;
 
 % TODO Lyapunov analysis
-% tanh(sin()) used for coupling changes the cos(.) term in (4.7) to a 
-% triangle function (see page 77).
+% tanh(sin()) used for coupling changes the cos() term in (4.7) to
+% triangle function (see page 77)
 end

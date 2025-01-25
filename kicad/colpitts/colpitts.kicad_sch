@@ -1092,6 +1092,16 @@
 		)
 		(uuid "f85590f8-fa08-46e8-aac3-b3677d354c2a")
 	)
+	(text "V_out"
+		(exclude_from_sim no)
+		(at 169.926 91.694 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "3dc998f1-3ef2-4182-a81e-ea70e0a6d89a")
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 153.67 82.55 0)
