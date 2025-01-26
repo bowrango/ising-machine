@@ -29,12 +29,13 @@ coupling = @(t, args) 1 + t*args.k;
 a2.T = tstop/20;
 sync = @(t, args) 1+2*tanh(10*cos(2*pi*t/args.T));
 
-% Model phase state vector X
 % TODO discrete points match Ising model. Rounding explains cut jitter
+% Model phase state vector X
 drift = @(t,X) phaseModel(X, coupling(t, a1), sync(t, a2), J);
 
 % Noise schedule (constant)
-Kn = 0.1;
+% Curious how this related to Boltzmann re: Eq 4.17
+Kn = 0;
 diffusion = @(t,X) Kn*eye(nOsc);
 
 mdl = sde(drift, diffusion, StartState=rand(nOsc, 1));
@@ -75,18 +76,23 @@ xlabel('time (cycles)');
 hold off
 
 function dxdt = phaseModel(x, K, Ks, J)
-% Adapted Kuramoto (Equation 4.16)
+% Adapted Kuramoto
+
+% FIXME Lyapunov analysis
+% tanh(sin()) used for coupling changes the cos() term in (4.7) to
+% triangle function (see page 77). Should be dEdt <= 0
+shift = x - x.';
+E = -K*sum(J(:).*cos(shift(:))) + Ks*sum(cos(2*x));
+
 n = length(x);
 dxdt = zeros(n,1);
 for ii = 1:n
-   % Coupling
-    dxdt(ii) = -K*J(ii, :)*tanh(10*sin(pi*(x(ii) - x)));
+    % Coupling, sync, and normalize
+    % 4.16
+    dxdt(ii) = (-K*J(ii,:)*tanh(10*sin(pi*(x(ii)-x))) - Ks*sin(2*pi*x(ii)))/pi;
+
+    % Basic Kuramoto (4.3 and 4.4)
+    % dxdt(ii) = -K*J(ii, :)*sin(x(ii) - x);
+    % E(ii) = -K*J(ii, :)*cos(x(ii) - x);
 end
-
-% Add sync and normalize
-dxdt = (dxdt - Ks*sin(2*pi*x))/pi;
-
-% TODO Lyapunov analysis
-% tanh(sin()) used for coupling changes the cos() term in (4.7) to
-% triangle function (see page 77)
 end
